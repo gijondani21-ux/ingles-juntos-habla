@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#22264a">
+<title>Inglés juntos · Habla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap">
+<style>/* mascots */
+.buddy{display:inline-block;position:relative;line-height:0;flex:none}
+.buddy svg{width:100%;height:auto;overflow:visible;transform-origin:50% 92%}
+.buddy .e-happy,.buddy .e-sad,.buddy .m-sad,.buddy .tear{display:none}
+.buddy[data-mood="happy"] .e-norm,.buddy[data-mood="sad"] .e-norm{display:none}
+.buddy[data-mood="happy"] .e-happy{display:inline}
+.buddy[data-mood="sad"] .e-sad,.buddy[data-mood="sad"] .m-sad,.buddy[data-mood="sad"] .tear{display:inline}
+.buddy[data-mood="sad"] .m-norm{display:none}
+.buddy[data-mood="idle"] svg{animation:bob 3.2s ease-in-out infinite}
+.buddy[data-mood="happy"] svg{animation:dance .5s ease-in-out 3}
+.buddy[data-mood="sad"] svg{animation:droop 1.4s ease-out forwards}
+.buddy .lids{transform-origin:center;animation:blink 5s infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-1.5deg)}}
+@keyframes dance{0%{transform:translateY(0) rotate(0)}25%{transform:translateY(-12px) rotate(-10deg)}50%{transform:translateY(0) rotate(0) scale(1.06,.94)}75%{transform:translateY(-12px) rotate(10deg)}100%{transform:translateY(0) rotate(0)}}
+@keyframes droop{0%{transform:none}30%{transform:translateY(3px) rotate(-4deg) scale(1.02,.96)}100%{transform:translateY(4px) rotate(-6deg) scale(1,.95)}}
+@keyframes blink{0%,94%,100%{opacity:0}96%{opacity:1}}
+</style>
+<style>
+/* Layout: one-column speaking trainer, max 640px. Dark stage, big microphone, live transcript, instant feedback; mascot reacts. */
+:root{
+  --bg:#22264a; --card:rgb(255 255 255/.07); --fg:#f5f6ff; --muted:#b9bde3; --line:rgb(255 255 255/.14);
+  --pop:#ff7a5c; --ok:#3fd6bf; --bad:#ff7b82; --warn:#f3ad4b; --dani:#79cf74; --emma:#bf98f2;
+  --f-display:"Fredoka",ui-rounded,system-ui,sans-serif; --f-body:"Atkinson Hyperlegible Next",-apple-system,"Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{padding:calc(env(safe-area-inset-top,0px) + 12px) 16px calc(env(safe-area-inset-bottom,0px) + 24px)}
+[hidden]{display:none!important}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--pop);outline-offset:2px;border-radius:8px}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{font-family:var(--f-display);font-weight:600}
+.wrap{max-width:640px;margin:0 auto;display:grid;gap:16px}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html,body{overflow-x:hidden}
+.top h1{font-size:1.25rem;margin-right:auto}
+.top h1 b{color:var(--pop)}
+.who{display:flex;gap:4px;background:var(--card);padding:3px;border-radius:999px}
+.who button{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;font-weight:700;color:var(--muted);font-size:.88rem}
+.who button .buddy{width:22px}
+.who button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.back{color:var(--muted);font-weight:700;font-size:.9rem}
+.hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:16px;border-radius:20px;background:linear-gradient(135deg,rgb(255 122 92/.22),rgb(63 214 191/.18))}
+.hero .buddy{width:92px}
+.hero p{color:var(--muted);font-size:.92rem}
+.modes{display:grid;gap:10px}
+.mode{display:grid;gap:4px;text-align:left;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.mode strong{font-family:var(--f-display);font-weight:600;font-size:1.08rem}
+.mode span{color:var(--muted);font-size:.88rem}
+.prog{display:flex;gap:3px}
+.prog i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.prog i.ok{background:var(--ok)} .prog i.ko{background:var(--bad)} .prog i.cur{background:var(--fg)}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.target{font-family:var(--f-display);font-size:clamp(1.5rem,6vw,2.2rem);font-weight:600;line-height:1.3}
+.target .w{border-radius:6px;padding:0 3px}
+.target .w.ok{background:rgb(63 214 191/.3)}
+.target .w.ko{background:rgb(255 123 130/.38);text-decoration:underline wavy}
+.ipa{font-family:ui-monospace,Menlo,monospace;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 18px;border-radius:999px;font-weight:700}
+.btn.primary{background:var(--pop);color:#2a1610}
+.btn.soft{background:var(--card);border:1px solid var(--line)}
+.btn.ghost{color:var(--muted);padding-inline:10px}
+.btn.small{min-height:36px;padding:6px 12px;font-size:.88rem}
+.stage{display:grid;justify-items:center;gap:10px;padding:8px 0}
+.mic{width:112px;height:112px;border-radius:50%;background:var(--pop);display:grid;place-items:center;box-shadow:0 10px 30px rgb(255 122 92/.45);position:relative}
+.mic svg{width:46px;height:46px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.mic.on{background:#ff5a3a}
+.mic.on::before,.mic.on::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:3px solid var(--pop);animation:pulse 1.2s ease-out infinite}
+.mic.on::after{animation-delay:.6s}
+@keyframes pulse{from{transform:scale(.9);opacity:1}to{transform:scale(1.35);opacity:0}}
+.mic-label{font-weight:700;color:var(--muted);font-size:.92rem;text-align:center}
+.live{min-height:2.6em;text-align:center;font-size:1.1rem;color:var(--fg);opacity:.9}
+.feed{display:grid;gap:8px;padding:14px;border-radius:16px;background:var(--card);border-left:5px solid var(--ok)}
+.feed.ko{border-left-color:var(--bad)} .feed.mid{border-left-color:var(--warn)}
+.feed strong{font-family:var(--f-display);font-size:1.15rem}
+.feed .tip{color:var(--muted);font-size:.9rem}
+.err{display:grid;gap:2px;padding:8px 10px;border-radius:10px;background:rgb(255 255 255/.05)}
+.err s{opacity:.7} .err b{color:var(--ok)}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice button{padding:18px 10px;border-radius:16px;background:var(--card);border:1px solid var(--line);font-family:var(--f-display);font-size:1.4rem;font-weight:600}
+.choice button.ok{background:var(--ok);color:var(--bg)} .choice button.ko{background:var(--bad);color:var(--bg)}
+.scene{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scene div{padding:10px;border-radius:12px;background:var(--card);font-size:.92rem}
+.end{display:grid;gap:12px;justify-items:start}
+.end .big{font-family:var(--f-display);font-size:4rem;font-weight:700;color:var(--ok);line-height:1}
+.note{font-size:.82rem;color:var(--muted)}
+.corner{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:70px;z-index:5;pointer-events:none}
+.corner .buddy{width:70px}
+.timer{font-family:var(--f-display);font-weight:700;font-size:2rem;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Inglés<b>·</b>juntos <span style="color:var(--muted);font-weight:500;white-space:nowrap">· habla</span></h1>
+    <div class="who" role="group" aria-label="Quién practica">
+      <button data-p="Dani" aria-pressed="false">Dani</button>
+      <button data-p="Emma" aria-pressed="false">Emma</button>
+    </div>
+  </header>
+  <main id="main"></main>
+  <p class="note" id="foot"></p>
+</div>
+<div class="corner" id="corner" aria-hidden="true"></div>
+<script>const PRON={"words": [{"w": "comfortable", "ipa": "/ˈkʌmftəbl/", "es_tip": "Se dice en 3 sílabas: KUMF-tuh-bul; no 'com-for-ta-ble'.", "es": "cómodo", "cat": "sílabas mudas"}, {"w": "vegetable", "ipa": "/ˈvedʒtəbl/", "es_tip": "3 sílabas: VEJ-tuh-bul. La segunda 'e' desaparece y la 'g' suena como 'y' fuerte (/dʒ/).", "es": "verdura", "cat": "sílabas mudas"}, {"w": "Wednesday", "ipa": "/ˈwenzdeɪ/", "es_tip": "2 sílabas: WENZ-dei. La primera 'd' no se pronuncia.", "es": "miércoles", "cat": "sílabas mudas"}, {"w": "chocolate", "ipa": "/ˈtʃɒklət/", "es_tip": "2 sílabas: CHOK-lut. Nada de 'cho-co-la-te'.", "es": "chocolate", "cat": "sílabas mudas"}, {"w": "different", "ipa": "/ˈdɪfrənt/", "es_tip": "2 sílabas: DIF-runt. La 'e' del medio casi desaparece.", "es": "diferente", "cat": "sílabas mudas"}, {"w": "interesting", "ipa": "/ˈɪntrəstɪŋ/", "es_tip": "3 sílabas con acento al principio: IN-truh-sting. No 'in-te-res-tin'.", "es": "interesante", "cat": "sílabas mudas"}, {"w": "temperature", "ipa": "/ˈtemprətʃə/", "es_tip": "TEM-pruh-chuh. El final '-ture' suena 'chuh', no 'tu-re'.", "es": "temperatura", "cat": "sílabas mudas"}, {"w": "business", "ipa": "/ˈbɪznəs/", "es_tip": "2 sílabas: BIZ-nis. La 'u' suena 'i' y la 'i' del medio no suena.", "es": "negocio, empresa", "cat": "sílabas mudas"}, {"w": "family", "ipa": "/ˈfæmli/", "es_tip": "Normalmente 2 sílabas: FAM-li.", "es": "familia", "cat": "sílabas mudas"}, {"w": "island", "ipa": "/ˈaɪlənd/", "es_tip": "La 's' es muda: AI-lund.", "es": "isla", "cat": "letras mudas"}, {"w": "knife", "ipa": "/naɪf/", "es_tip": "La 'k' inicial delante de 'n' no suena: NAIF.", "es": "cuchillo", "cat": "letras mudas"}, {"w": "knowledge", "ipa": "/ˈnɒlɪdʒ/", "es_tip": "'k' muda y la 'ow' suena 'o' corta: NOL-ij.", "es": "conocimiento", "cat": "letras mudas"}, {"w": "climb", "ipa": "/klaɪm/", "es_tip": "La 'b' final tras 'm' no suena: KLAIM.", "es": "escalar, subir", "cat": "letras mudas"}, {"w": "doubt", "ipa": "/daʊt/", "es_tip": "La 'b' es muda: DAUT.", "es": "duda, dudar", "cat": "letras mudas"}, {"w": "receipt", "ipa": "/rɪˈsiːt/", "es_tip": "La 'p' es muda: ri-SIIT.", "es": "recibo, tique", "cat": "letras mudas"}, {"w": "listen", "ipa": "/ˈlɪsn/", "es_tip": "La 't' es muda: LIS-n.", "es": "escuchar", "cat": "letras mudas"}, {"w": "castle", "ipa": "/ˈkɑːsl/", "es_tip": "La 't' es muda: KAA-sul.", "es": "castillo", "cat": "letras mudas"}, {"w": "honest", "ipa": "/ˈɒnɪst/", "es_tip": "Aquí la 'h' sí es muda: ON-ist. Por eso se dice 'an honest person'.", "es": "honesto, sincero", "cat": "letras mudas"}, {"w": "hour", "ipa": "/ˈaʊə/", "es_tip": "'h' muda: AU-uh. Se dice 'an hour'.", "es": "hora", "cat": "letras mudas"}, {"w": "foreign", "ipa": "/ˈfɒrən/", "es_tip": "La 'g' es muda: FOR-un.", "es": "extranjero", "cat": "letras mudas"}, {"w": "salmon", "ipa": "/ˈsæmən/", "es_tip": "La 'l' es muda: SAM-un.", "es": "salmón", "cat": "letras mudas"}, {"w": "walk", "ipa": "/wɔːk/", "es_tip": "La 'l' no suena: WOOK. Igual en 'talk'.", "es": "caminar, paseo", "cat": "letras mudas"}, {"w": "would", "ipa": "/wʊd/", "es_tip": "La 'l' no suena: WUD. Igual que 'could' y 'should'.", "es": "(condicional)", "cat": "letras mudas"}, {"w": "answer", "ipa": "/ˈɑːnsə/", "es_tip": "La 'w' es muda: AAN-suh.", "es": "respuesta, responder", "cat": "letras mudas"}, {"w": "psychology", "ipa": "/saɪˈkɒlədʒi/", "es_tip": "La 'p' inicial no suena: sai-KOL-uh-ji.", "es": "psicología", "cat": "letras mudas"}, {"w": "worked", "ipa": "/wɜːkt/", "es_tip": "Tras sonido sordo (/k/), '-ed' suena /t/: WURKT, una sílaba. Nunca 'wor-ked'.", "es": "trabajó", "cat": "-ed"}, {"w": "watched", "ipa": "/wɒtʃt/", "es_tip": "Una sílaba: WOCHT. '-ed' suena /t/.", "es": "vio, miró", "cat": "-ed"}, {"w": "stopped", "ipa": "/stɒpt/", "es_tip": "Una sílaba: STOPT. Y sin 'e' delante de la s.", "es": "paró", "cat": "-ed"}, {"w": "relaxed", "ipa": "/rɪˈlækst/", "es_tip": "-ed suena /t/: ri-LAKST, dos sílabas.", "es": "relajado", "cat": "-ed"}, {"w": "played", "ipa": "/pleɪd/", "es_tip": "Tras sonido sonoro, '-ed' suena /d/: PLEID, una sílaba.", "es": "jugó", "cat": "-ed"}, {"w": "lived", "ipa": "/lɪvd/", "es_tip": "Una sílaba: LIVD. '-ed' suena /d/.", "es": "vivió", "cat": "-ed"}, {"w": "decided", "ipa": "/dɪˈsaɪdɪd/", "es_tip": "Solo tras /t/ o /d/ se añade sílaba: di-SAI-did.", "es": "decidió", "cat": "-ed"}, {"w": "wanted", "ipa": "/ˈwɒntɪd/", "es_tip": "Tras /t/, '-ed' suena /ɪd/: WON-tid, dos sílabas.", "es": "quería", "cat": "-ed"}, {"w": "interested", "ipa": "/ˈɪntrəstɪd/", "es_tip": "IN-truh-stid. Acento en la primera sílaba y '-ed' como /ɪd/.", "es": "interesado", "cat": "-ed"}, {"w": "about", "ipa": "/əˈbaʊt/", "es_tip": "La 'a' inicial es schwa /ə/, una vocal débil y relajada: uh-BAUT.", "es": "sobre, acerca de", "cat": "schwa"}, {"w": "problem", "ipa": "/ˈprɒbləm/", "es_tip": "La 'e' final es schwa: PROB-lum, no 'prob-lem'.", "es": "problema", "cat": "schwa"}, {"w": "photographer", "ipa": "/fəˈtɒɡrəfə/", "es_tip": "Acento en la 2ª sílaba: fuh-TOG-ruh-fuh. Las demás vocales son schwa.", "es": "fotógrafo", "cat": "schwa"}, {"w": "computer", "ipa": "/kəmˈpjuːtə/", "es_tip": "kum-PIU-tuh. La 'o' y la 'er' final son schwa.", "es": "ordenador", "cat": "schwa"}, {"w": "very", "ipa": "/ˈveri/", "es_tip": "La 'v' se hace con los dientes de arriba sobre el labio inferior, vibrando. No 'beri'.", "es": "muy", "cat": "/v/ vs /b/"}, {"w": "travel", "ipa": "/ˈtrævl/", "es_tip": "TRA-vul, con /v/ labiodental. 'Trabel' cambia el sonido.", "es": "viajar", "cat": "/v/ vs /b/"}, {"w": "believe", "ipa": "/bɪˈliːv/", "es_tip": "Empieza con /b/ (labios juntos) y termina con /v/ (dientes y labio): bi-LIIV.", "es": "creer", "cat": "/v/ vs /b/"}, {"w": "available", "ipa": "/əˈveɪləbl/", "es_tip": "uh-VEI-luh-bul: /v/ en medio y /b/ al final. Acento en 'VEI'.", "es": "disponible", "cat": "/v/ vs /b/"}, {"w": "vote", "ipa": "/vəʊt/", "es_tip": "/v/ vibrando: VOUT. 'Bote' es otra palabra (boat).", "es": "votar, voto", "cat": "/v/ vs /b/"}, {"w": "should", "ipa": "/ʃʊd/", "es_tip": "/ʃ/ es como el 'sh' para pedir silencio: SHUD. La 'l' es muda.", "es": "debería", "cat": "/ʃ/"}, {"w": "sure", "ipa": "/ʃɔː/", "es_tip": "Empieza con /ʃ/ ('sh'), no con 's': SHOO.", "es": "seguro", "cat": "/ʃ/"}, {"w": "machine", "ipa": "/məˈʃiːn/", "es_tip": "La 'ch' suena 'sh' y la 'i' es larga: muh-SHIIN.", "es": "máquina", "cat": "/ʃ/"}, {"w": "information", "ipa": "/ˌɪnfəˈmeɪʃn/", "es_tip": "'-tion' siempre suena 'shun': in-fuh-MEI-shun. Acento en 'MEI'.", "es": "información", "cat": "/ʃ/"}, {"w": "job", "ipa": "/dʒɒb/", "es_tip": "/dʒ/ es como una 'ch' sonora, tipo 'y' muy fuerte: DJOB. No 'yob' ni 'job' con jota.", "es": "trabajo", "cat": "/dʒ/"}, {"w": "journey", "ipa": "/ˈdʒɜːni/", "es_tip": "DJUR-ni. La 'j' inglesa nunca es la jota española.", "es": "viaje, trayecto", "cat": "/dʒ/"}, {"w": "manager", "ipa": "/ˈmænɪdʒə/", "es_tip": "MAN-i-djuh. Acento en la primera sílaba, 'g' como /dʒ/.", "es": "gerente, jefe", "cat": "/dʒ/"}, {"w": "yellow", "ipa": "/ˈjeləʊ/", "es_tip": "Empieza con /j/ suave (como 'i'), no con /dʒ/: YE-lou. Compara con 'jello'.", "es": "amarillo", "cat": "/dʒ/"}, {"w": "Spain", "ipa": "/speɪn/", "es_tip": "Empieza directamente por 's': SPEIN. Nada de 'espein'.", "es": "España", "cat": "s + consonante"}, {"w": "student", "ipa": "/ˈstjuːdnt/", "es_tip": "STIU-dnt, sin 'e' delante. Practica alargando la 's': sssstudent.", "es": "estudiante", "cat": "s + consonante"}, {"w": "school", "ipa": "/skuːl/", "es_tip": "SKUUL, sin 'e' inicial y con 'u' larga.", "es": "colegio, escuela", "cat": "s + consonante"}, {"w": "special", "ipa": "/ˈspeʃl/", "es_tip": "SPESH-ul: sin 'e' inicial y la 'ci' suena /ʃ/.", "es": "especial", "cat": "s + consonante"}, {"w": "stressed", "ipa": "/strest/", "es_tip": "Una sola sílaba: STREST. Sin 'e' delante y '-ed' como /t/.", "es": "estresado", "cat": "s + consonante"}, {"w": "hotel", "ipa": "/həʊˈtel/", "es_tip": "La 'h' es un soplo suave (no jota) y el acento va al final: hou-TEL.", "es": "hotel", "cat": "/h/"}, {"w": "hungry", "ipa": "/ˈhʌŋɡri/", "es_tip": "'h' aspirada suave, como empañar un cristal: HUNG-gri.", "es": "hambriento", "cat": "/h/"}, {"w": "behind", "ipa": "/bɪˈhaɪnd/", "es_tip": "No te comas la 'h' del medio: bi-HAIND.", "es": "detrás", "cat": "/h/"}, {"w": "people", "ipa": "/ˈpiːpl/", "es_tip": "'i' larga /iː/: PII-pul. Sin 'o'.", "es": "gente", "cat": "/iː/ vs /ɪ/"}, {"w": "women", "ipa": "/ˈwɪmɪn/", "es_tip": "Sorpresa: WIM-in. Singular 'woman' = WUM-un.", "es": "mujeres", "cat": "/iː/ vs /ɪ/"}, {"w": "busy", "ipa": "/ˈbɪzi/", "es_tip": "La 'u' suena /ɪ/: BI-zi.", "es": "ocupado", "cat": "/iː/ vs /ɪ/"}, {"w": "develop", "ipa": "/dɪˈveləp/", "es_tip": "Acento en la 2ª: di-VEL-up. No 'DE-ve-lop'.", "es": "desarrollar", "cat": "acento"}, {"w": "event", "ipa": "/ɪˈvent/", "es_tip": "Acento al final: i-VENT.", "es": "evento", "cat": "acento"}, {"w": "success", "ipa": "/səkˈses/", "es_tip": "suhk-SES, acento al final. Y '-ful' en 'successful': suhk-SES-ful.", "es": "éxito", "cat": "acento"}, {"w": "Europe", "ipa": "/ˈjʊərəp/", "es_tip": "YUU-rup: empieza con /j/ y acento en la primera.", "es": "Europa", "cat": "acento"}, {"w": "advertisement", "ipa": "/ədˈvɜːtɪsmənt/", "es_tip": "En inglés británico: ud-VUR-tis-munt, acento en la 2ª.", "es": "anuncio", "cat": "acento"}, {"w": "recipe", "ipa": "/ˈresəpi/", "es_tip": "3 sílabas: RE-suh-pi. No 'ri-saip'.", "es": "receta", "cat": "acento"}, {"w": "photograph", "ipa": "/ˈfəʊtəɡrɑːf/", "es_tip": "FOU-tuh-graaf: acento en la 1ª. Compara con phoTOgrapher.", "es": "fotografía", "cat": "acento"}, {"w": "think", "ipa": "/θɪŋk/", "es_tip": "/θ/ es como la 'z' de España: lengua entre los dientes. No 'tink' ni 'sink'.", "es": "pensar", "cat": "th"}, {"w": "three", "ipa": "/θriː/", "es_tip": "Como 'zrii' con 'z' castellana. Distinto de 'tree' (árbol).", "es": "tres", "cat": "th"}, {"w": "clothes", "ipa": "/kləʊðz/", "es_tip": "/ð/ es como la 'd' suave de 'nada'. Muchos nativos dicen simplemente 'klouz'.", "es": "ropa", "cat": "th"}, {"w": "months", "ipa": "/mʌnθs/", "es_tip": "MUNTHS: tras la 'n', pon la lengua entre los dientes y luego 's'.", "es": "meses", "cat": "th"}, {"w": "weather", "ipa": "/ˈweðə/", "es_tip": "WE-dhuh, con la 'd' suave de 'cada'. Igual que 'whether'.", "es": "tiempo (clima)", "cat": "th"}, {"w": "although", "ipa": "/ɔːlˈðəʊ/", "es_tip": "ool-DHOU: acento al final, 'gh' mudo.", "es": "aunque", "cat": "th"}, {"w": "breakfast", "ipa": "/ˈbrekfəst/", "es_tip": "BREK-fust, no 'break-fast'.", "es": "desayuno", "cat": "vocales"}, {"w": "said", "ipa": "/sed/", "es_tip": "SED, no 'seid'. Y 'says' = SEZ.", "es": "dijo", "cat": "vocales"}, {"w": "enough", "ipa": "/ɪˈnʌf/", "es_tip": "i-NUF: 'gh' suena /f/.", "es": "suficiente", "cat": "vocales"}, {"w": "queue", "ipa": "/kjuː/", "es_tip": "Se dice como la letra Q: KIUU.", "es": "cola, fila", "cat": "vocales"}, {"w": "area", "ipa": "/ˈeəriə/", "es_tip": "EE-ri-uh, no 'a-re-a'.", "es": "zona", "cat": "vocales"}], "pairs": [{"a": "ship", "b": "sheep", "ipa_a": "/ʃɪp/", "ipa_b": "/ʃiːp/", "es_tip": "/ɪ/ es corta y relajada, entre 'i' y 'e'. /iː/ es larga y con sonrisa."}, {"a": "live", "b": "leave", "ipa_a": "/lɪv/", "ipa_b": "/liːv/", "es_tip": "'live' (vivir) corta; 'leave' (irse) larga. Confundirlas cambia el mensaje."}, {"a": "fill", "b": "feel", "ipa_a": "/fɪl/", "ipa_b": "/fiːl/", "es_tip": "Alarga la vocal en 'feel' y estira los labios."}, {"a": "sit", "b": "seat", "ipa_a": "/sɪt/", "ipa_b": "/siːt/", "es_tip": "'sit' rápida y relajada; 'seat' larga."}, {"a": "full", "b": "fool", "ipa_a": "/fʊl/", "ipa_b": "/fuːl/", "es_tip": "/ʊ/ corta y floja; /uː/ larga con labios redondeados."}, {"a": "cat", "b": "cut", "ipa_a": "/kæt/", "ipa_b": "/kʌt/", "es_tip": "/æ/: abre mucho la boca, entre 'a' y 'e'. /ʌ/: 'a' corta y central, boca menos abierta."}, {"a": "hat", "b": "heart", "ipa_a": "/hæt/", "ipa_b": "/hɑːt/", "es_tip": "/æ/ corta y abierta; /ɑː/ larga y profunda, desde la garganta. La 'r' no suena en inglés británico."}, {"a": "bad", "b": "bed", "ipa_a": "/bæd/", "ipa_b": "/bed/", "es_tip": "'bed' es la 'e' española; 'bad' abre más la boca, casi 'a'."}, {"a": "walk", "b": "work", "ipa_a": "/wɔːk/", "ipa_b": "/wɜːk/", "es_tip": "'walk' con 'o' larga y labios redondos; 'work' con vocal neutra larga, labios relajados."}, {"a": "berry", "b": "very", "ipa_a": "/ˈberi/", "ipa_b": "/ˈveri/", "es_tip": "/b/ con los dos labios; /v/ con dientes superiores sobre el labio inferior."}, {"a": "boat", "b": "vote", "ipa_a": "/bəʊt/", "ipa_b": "/vəʊt/", "es_tip": "Mismo truco: si no notas vibración en el labio inferior, no es /v/."}, {"a": "best", "b": "vest", "ipa_a": "/best/", "ipa_b": "/vest/", "es_tip": "'best' (mejor) vs 'vest' (camiseta interior). Exagera la /v/ al practicar."}, {"a": "sea", "b": "she", "ipa_a": "/siː/", "ipa_b": "/ʃiː/", "es_tip": "/s/ con sonrisa; /ʃ/ con labios hacia fuera, como pidiendo silencio."}, {"a": "sort", "b": "short", "ipa_a": "/sɔːt/", "ipa_b": "/ʃɔːt/", "es_tip": "Redondea y adelanta los labios para /ʃ/."}, {"a": "chip", "b": "ship", "ipa_a": "/tʃɪp/", "ipa_b": "/ʃɪp/", "es_tip": "/tʃ/ es la 'ch' española (con golpe); /ʃ/ es continua, sin golpe."}, {"a": "watch", "b": "wash", "ipa_a": "/wɒtʃ/", "ipa_b": "/wɒʃ/", "es_tip": "'watch' termina con golpe 'ch'; 'wash' con 'sh' suave y continua."}, {"a": "yet", "b": "jet", "ipa_a": "/jet/", "ipa_b": "/dʒet/", "es_tip": "/j/ es una 'i' rápida; /dʒ/ es una 'ch' sonora. 'Yes' no es 'jes'."}, {"a": "year", "b": "ear", "ipa_a": "/jɪə/", "ipa_b": "/ɪə/", "es_tip": "'year' empieza con una 'i' rápida (/j/); 'ear' empieza directamente con la vocal."}, {"a": "hate", "b": "eight", "ipa_a": "/heɪt/", "ipa_b": "/eɪt/", "es_tip": "La /h/ es un soplo suave: si te la comes, 'I hate it' se convierte en 'I eight it'."}, {"a": "hold", "b": "old", "ipa_a": "/həʊld/", "ipa_b": "/əʊld/", "es_tip": "Soplo suave para la 'h', nunca jota."}, {"a": "think", "b": "sink", "ipa_a": "/θɪŋk/", "ipa_b": "/sɪŋk/", "es_tip": "/θ/ con la lengua entre los dientes, como la 'z' de 'zapato'."}, {"a": "three", "b": "tree", "ipa_a": "/θriː/", "ipa_b": "/triː/", "es_tip": "'three' con 'z' castellana; 'tree' con 't' normal."}, {"a": "they", "b": "day", "ipa_a": "/ðeɪ/", "ipa_b": "/deɪ/", "es_tip": "/ð/ es la 'd' suave de 'cada', lengua entre dientes; /d/ es la 'd' fuerte de 'dedo'."}, {"a": "worked", "b": "work", "ipa_a": "/wɜːkt/", "ipa_b": "/wɜːk/", "es_tip": "La única diferencia es una /t/ final muy corta. Sin ella, el pasado desaparece."}, {"a": "play", "b": "played", "ipa_a": "/pleɪ/", "ipa_b": "/pleɪd/", "es_tip": "Añade una /d/ suave al final, sin sílaba extra."}, {"a": "light", "b": "right", "ipa_a": "/laɪt/", "ipa_b": "/raɪt/", "es_tip": "La 'r' inglesa no vibra: la lengua no toca el paladar y los labios se redondean un poco."}, {"a": "pull", "b": "pool", "ipa_a": "/pʊl/", "ipa_b": "/puːl/", "es_tip": "'pull' (tirar) corta; 'pool' (piscina) larga."}, {"a": "beach", "b": "bitch", "ipa_a": "/biːtʃ/", "ipa_b": "/bɪtʃ/", "es_tip": "Par delicado: 'beach' siempre larga y con sonrisa. 'bitch' es un insulto. Lo mismo con 'sheet' y 'shit'."}], "sentences": [{"level": "A2", "s": "I'm from Spain, but I live in a small town near Madrid.", "focus": "s + consonante (Spain, small)", "es_tip": "Sin 'e' delante de 'Spain' ni de 'small'. Une 'live in a' como una sola palabra: 'li-vi-na'."}, {"level": "A2", "s": "I usually get up at seven and have breakfast at home.", "focus": "/v/, /h/ y 'breakfast'", "es_tip": "'seven' con /v/; 'have' y 'home' con soplo suave; BREK-fust."}, {"level": "A2", "s": "She works in a hotel and she really likes her job.", "focus": "-s de tercera persona, /dʒ/", "es_tip": "Que se oiga la 's' de 'works' y 'likes'. 'job' con /dʒ/, nunca con jota."}, {"level": "A2", "s": "We watched a film last night and it was very funny.", "focus": "-ed como /t/, /v/", "es_tip": "'watched' es una sola sílaba: WOCHT. 'very' con /v/ labiodental."}, {"level": "A2", "s": "There are three bedrooms and a big kitchen in my flat.", "focus": "th /ð/ y /θ/", "es_tip": "'There' con /ð/ suave; 'three' con 'z' castellana."}, {"level": "A2", "s": "Can I have a glass of water, please?", "focus": "forma débil de 'can' y 'of'", "es_tip": "'Can I' suena 'kuh-nai' y 'of' casi 'uv'. Entonación subiendo al final por cortesía."}, {"level": "A2", "s": "I'd like to visit London because I've never been there.", "focus": "contracciones I'd, I've", "es_tip": "Practica 'aid laik' y 'aiv nevuh'. 'been' suele sonar 'bin'."}, {"level": "A2", "s": "It's quite cold today, so take a warm jacket.", "focus": "/dʒ/ y vocales largas", "es_tip": "'jacket' con /dʒ/; 'cold' con 'ou' y 'warm' con 'oo' larga."}, {"level": "A2", "s": "My brother is taller than me, but I'm older than him.", "focus": "comparativos con schwa", "es_tip": "'-er' y 'than' suenan con schwa: TOO-luh dhun mi."}, {"level": "A2", "s": "How often do you play sport at the weekend?", "focus": "pregunta wh-, s + consonante", "es_tip": "Entonación que baja al final en preguntas con 'how'. 'sport' sin 'e'."}, {"level": "A2", "s": "I stopped eating meat about two years ago.", "focus": "-ed como /t/, schwa en 'about'", "es_tip": "'stopped' = STOPT; enlaza 'stopped eating' como 'stop-teating'."}, {"level": "A2", "s": "Excuse me, is there a bus station near here?", "focus": "s + consonante, preguntas sí/no", "es_tip": "'station' = STEI-shun. Entonación que sube al final."}, {"level": "A2", "s": "We decided to stay at home because it was raining.", "focus": "-ed como /ɪd/", "es_tip": "'decided' sí tiene sílaba extra: di-SAI-did."}, {"level": "B1", "s": "I've been working here since last year.", "focus": "contracción + since", "es_tip": "'I've been' = 'aiv bin'. Enlaza 'working here' y no pronuncies la 'r' de 'here'."}, {"level": "B1", "s": "If I had more free time, I'd travel around Asia.", "focus": "2º condicional, /v/", "es_tip": "'I'd' = AID. 'travel' con /v/. Pausa breve tras la coma."}, {"level": "B1", "s": "I'm used to getting up early, so it doesn't bother me.", "focus": "used to + -ing, /ð/", "es_tip": "'used to' suena 'IUS-tuh' (con /s/, no /z/). 'bother' con /ð/."}, {"level": "B1", "s": "I'd rather stay in tonight, if you don't mind.", "focus": "would rather, enlace", "es_tip": "'I'd rather' = 'aid RAA-dhuh'. 'don't mind' casi 'doun-maind'."}, {"level": "B1", "s": "I've lived in the same flat for over ten years.", "focus": "present perfect + for, -ed /d/", "es_tip": "'lived' = LIVD, una sílaba. 'for' débil: 'fuh'."}, {"level": "B1", "s": "The film was so boring that I fell asleep halfway through.", "focus": "so...that, th, 'l' muda", "es_tip": "'halfway' = HAAF-wei (la 'l' es muda). 'through' con /θ/: ZRUU."}, {"level": "B1", "s": "In my opinion, people should spend less time on their phones.", "focus": "dar opinión", "es_tip": "Acento en o-PIN-yun. 'should' = SHUD. 'people' con 'i' larga."}, {"level": "B1", "s": "I think that's a good point, but I'm not sure I agree.", "focus": "matizar acuerdo (Speaking 3/4)", "es_tip": "'think' con /θ/, 'sure' con /ʃ/. Pon énfasis en 'not sure'."}, {"level": "B1", "s": "In the first picture, the people seem to be having fun.", "focus": "describir fotos (Speaking 2)", "es_tip": "'picture' = PIK-chuh. 'seem to be' con 'i' larga en 'seem'."}, {"level": "B1", "s": "Both photos show people who are working outdoors.", "focus": "comparar fotos (Speaking 2)", "es_tip": "'Both' termina con /θ/. 'photos' con acento en FOU."}, {"level": "B1", "s": "Whereas the man looks relaxed, the woman looks quite stressed.", "focus": "contraste con whereas, -ed /t/", "es_tip": "'relaxed' y 'stressed' terminan en /t/, una sílaba final. 'woman' = WUM-un."}, {"level": "B1", "s": "It's not as expensive as I thought it would be.", "focus": "not as...as, formas débiles", "es_tip": "'as' débil: 'uz'. 'thought' = ZOOT con /θ/. 'would' sin 'l'."}, {"level": "B1", "s": "Shall we start with this one? What do you think?", "focus": "iniciar debate (Speaking 3)", "es_tip": "'Shall' con /ʃ/; 'start' sin 'e'. 'What do you' suena 'wo-djuh'."}, {"level": "B1", "s": "Could you say that again, please?", "focus": "pedir repetición en el examen", "es_tip": "'Could you' suena 'KU-djuh'. Usarla en el examen está bien y no penaliza."}, {"level": "B1", "s": "I was walking home when I suddenly heard a strange noise.", "focus": "pasado continuo + simple", "es_tip": "'walking' sin 'l'. 'heard' = HURD. 'strange' sin 'e' inicial."}, {"level": "B2", "s": "I'd have gone to the party if I'd known you were going.", "focus": "3er condicional, contracciones", "es_tip": "Rápido y natural: 'aid-uv GON' ... 'if aid NOUN'. 'have' débil: 'uv'."}, {"level": "B2", "s": "It might have been better to book the tickets in advance.", "focus": "modal perfecto", "es_tip": "'might have been' = 'MAI-tuv-bin'. Acento en 'BET-er' y 'ad-VAANS'."}, {"level": "B2", "s": "Not only is it cheaper, but it's also far more convenient.", "focus": "inversión enfática", "es_tip": "Énfasis en 'Not only' y 'far more'. 'convenient' = kun-VII-ni-unt."}, {"level": "B2", "s": "The flat, which my parents bought in the eighties, needs a lot of work.", "focus": "relativo explicativo, pausas", "es_tip": "Haz pausas cortas en las comas. 'bought' = BOOT; 'eighties' con /t/ suave."}, {"level": "B2", "s": "I'm not entirely convinced that it would work in practice.", "focus": "desacuerdo educado (Speaking 4)", "es_tip": "'entirely' = in-TAI-uh-li. Entonación suave para sonar diplomático."}, {"level": "B2", "s": "That's a really good point, although I see it slightly differently.", "focus": "matizar opinión", "es_tip": "'although' = ool-DHOU. 'differently' = DIF-runt-li, tres sílabas."}, {"level": "B2", "s": "Personally, I'd go for the second option, because it would benefit more people.", "focus": "decisión final (Speaking 3)", "es_tip": "'go for' = elegir. 'benefit' con acento en BEN. Enlaza 'go for the'."}, {"level": "B2", "s": "It looks as if they've been waiting for quite a long time.", "focus": "especular sobre fotos", "es_tip": "'as if' enlazado: 'uh-zif'. 'they've been' = 'dheiv bin'."}, {"level": "B2", "s": "They might be feeling a bit nervous, judging by their faces.", "focus": "especular con might", "es_tip": "'judging' con dos /dʒ/: DJUH-djing. 'nervous' = NUR-vus."}, {"level": "B2", "s": "I wish I'd started learning English when I was younger.", "focus": "wish + past perfect", "es_tip": "'I'd started' = 'aid STAA-tid'. 'younger' empieza con /j/ suave, no /dʒ/."}, {"level": "B2", "s": "Unless we leave now, we'll miss the beginning of the show.", "focus": "unless, /iː/ vs /ɪ/", "es_tip": "'leave' larga, 'miss' corta. 'we'll' = WIIL. 'show' con /ʃ/."}, {"level": "B2", "s": "The more you practise, the more confident you'll feel.", "focus": "the more... the more", "es_tip": "Ritmo marcado: acento en 'more', 'practise', 'confident', 'feel'."}, {"level": "B2", "s": "There's no point in worrying about things you can't change.", "focus": "there's no point + -ing", "es_tip": "'worrying' = WUH-ri-ing. 'can't' con 'a' larga en británico: KAANT."}, {"level": "B2", "s": "On balance, I'd say the advantages outweigh the disadvantages.", "focus": "conclusión (Writing/Speaking 4)", "es_tip": "'outweigh' = aut-WEI (gh mudo). 'advantages' = ud-VAAN-ti-djiz."}], "speaking_q": [{"part": 1, "q": "Where are you from?"}, {"part": 1, "q": "What do you like most about the place where you live?"}, {"part": 1, "q": "Is there anything you'd like to change about your town or city?"}, {"part": 1, "q": "Do you work or are you a student?"}, {"part": 1, "q": "What do you enjoy most about your job or studies?"}, {"part": 1, "q": "Who do you spend most of your free time with?"}, {"part": 1, "q": "What do you usually do at the weekend?"}, {"part": 1, "q": "Tell us about a hobby you have."}, {"part": 1, "q": "Do you prefer spending time indoors or outdoors? Why?"}, {"part": 1, "q": "What kind of music do you like?"}, {"part": 1, "q": "Have you seen a good film recently? Tell us about it."}, {"part": 1, "q": "Do you read much? What kind of books do you enjoy?"}, {"part": 1, "q": "How important is sport in your life?"}, {"part": 1, "q": "What's your favourite way to relax after a busy day?"}, {"part": 1, "q": "Do you enjoy cooking? Why or why not?"}, {"part": 1, "q": "What's a typical dish from your region?"}, {"part": 1, "q": "Where did you go on your last holiday?"}, {"part": 1, "q": "Is there a country you'd really like to visit in the future?"}, {"part": 1, "q": "Do you prefer travelling alone or with other people?"}, {"part": 1, "q": "How do you usually get to work or school?"}, {"part": 1, "q": "How much time do you spend on your phone every day?"}, {"part": 1, "q": "Do you use social media? What for?"}, {"part": 1, "q": "How long have you been learning English?"}, {"part": 1, "q": "What do you find most difficult about learning English?"}, {"part": 1, "q": "Do you think it's important to learn more than one language?"}, {"part": 1, "q": "What did you enjoy doing when you were a child?"}, {"part": 1, "q": "Tell us about a special celebration in your family."}, {"part": 1, "q": "Do you prefer shopping online or in shops? Why?"}, {"part": 1, "q": "Are you an early bird or a night owl?"}, {"part": 1, "q": "What would your perfect day be like?"}, {"part": 1, "q": "What are you planning to do next summer?"}, {"part": 1, "q": "Is there something new you'd like to learn in the next few years?"}, {"part": 1, "q": "Who has been an important influence in your life?"}, {"part": 1, "q": "Do you think you'll live in the same place in ten years' time?"}]};
+const SPK={"p2": [{"a": "Scene A: a family having dinner together at home, laughing.", "b2": "Scene B: a group of friends eating in a busy restaurant.", "q": "Compare the two scenes and say why people enjoy eating together in these situations.", "b": "Do you prefer eating at home or in a restaurant? Why?"}, {"a": "Scene A: a student studying alone in a quiet library.", "b2": "Scene B: students studying together in a noisy café.", "q": "Compare the two scenes and say which place is better for learning, and why.", "b": "Where do you like to study?"}, {"a": "Scene A: people travelling by train, reading and looking out of the window.", "b2": "Scene B: a person driving a car in heavy traffic.", "q": "Compare the two ways of travelling and say how the people might be feeling.", "b": "How do you usually travel when you go on holiday?"}, {"a": "Scene A: a man running in a park early in the morning.", "b2": "Scene B: people doing an exercise class in a gym.", "q": "Compare the two scenes and say why people choose to exercise in these ways.", "b": "Do you prefer exercising alone or with other people?"}, {"a": "Scene A: a person working from home on a laptop in the kitchen.", "b2": "Scene B: colleagues having a meeting in an office.", "q": "Compare the two scenes and say what is good and bad about working in each place.", "b": "Would you like to work from home? Why or why not?"}, {"a": "Scene A: young people at a big outdoor music festival.", "b2": "Scene B: an older couple at a classical music concert.", "q": "Compare the two scenes and say what the people are enjoying about these events.", "b": "What kind of event do you enjoy most?"}], "p1": ["Where are you from? What do you like about living there?", "Do you work or are you a student? Tell me about it.", "What do you usually do at the weekend?", "How do you usually get to work or university?", "What did you do last weekend?", "Do you prefer spending time at home or going out? Why?", "What kind of music do you like?", "Tell me about a friend you spend a lot of time with.", "What's your favourite time of the year? Why?", "How often do you use your mobile phone?", "What are you planning to do next summer?", "Do you enjoy cooking? What do you like to make?", "Tell me about a place you would like to visit.", "What do you like doing to relax after a busy day?", "Is English important in your job or studies? Why?", "Do you like watching films or series? What did you watch recently?", "What's the best thing about your town?", "Do you prefer studying in the morning or in the evening?", "Tell me about your family.", "What sport or exercise do you do, if any?"]};
+
+const EYES = (cx1, cx2, cy, r = 4.6) => `
+  <g class="e-norm"><circle cx="${cx1}" cy="${cy}" r="${r}" fill="#2a2740"/><circle cx="${cx2}" cy="${cy}" r="${r}" fill="#2a2740"/><circle cx="${cx1 + 1.6}" cy="${cy - 1.8}" r="1.6" fill="#fff"/><circle cx="${cx2 + 1.6}" cy="${cy - 1.8}" r="1.6" fill="#fff"/>
+    <g class="lids"><rect x="${cx1 - 5.5}" y="${cy - 5}" width="11" height="10" rx="5" fill="var(--lid)"/><rect x="${cx2 - 5.5}" y="${cy - 5}" width="11" height="10" rx="5" fill="var(--lid)"/></g></g>
+  <g class="e-happy" fill="none" stroke="#2a2740" stroke-width="2.6" stroke-linecap="round"><path d="M${cx1 - 4.5} ${cy + 1.5} q4.5 -6 9 0"/><path d="M${cx2 - 4.5} ${cy + 1.5} q4.5 -6 9 0"/></g>
+  <g class="e-sad"><circle cx="${cx1}" cy="${cy + 1.5}" r="3.6" fill="#2a2740"/><circle cx="${cx2}" cy="${cy + 1.5}" r="3.6" fill="#2a2740"/><circle cx="${cx1 + 1.2}" cy="${cy}" r="1.1" fill="#fff"/><circle cx="${cx2 + 1.2}" cy="${cy}" r="1.1" fill="#fff"/><g fill="none" stroke="#2a2740" stroke-width="2.2" stroke-linecap="round"><path d="M${cx1 - 5} ${cy - 5} l7 -3"/><path d="M${cx2 + 5} ${cy - 5} l-7 -3"/></g></g>
+  <path class="tear" d="M${cx2 + 4} ${cy + 4} q-2.5 4 0 6 q2.5 -2 0 -6z" fill="#7cc7ff"/>`;
+function cuernitosSVG() {
+  return `<svg viewBox="0 0 120 120" role="img" aria-label="Cuernitos, el triceratops de Dani" style="--lid:#8fd12a">
+  <defs><filter id="cn-fuzz" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="2.8"/></filter></defs>
+  <ellipse cx="60" cy="114" rx="40" ry="5" fill="rgb(0 0 0/.12)"/>
+  <g fill="#2f6e33">
+    <circle cx="40" cy="22" r="10"/><circle cx="52" cy="13" r="10"/><circle cx="66" cy="12" r="10"/><circle cx="79" cy="18" r="10"/><circle cx="87" cy="30" r="9"/><circle cx="33" cy="33" r="8"/>
+  </g>
+  <g fill="#3f8a3c"><circle cx="54" cy="15" r="5"/><circle cx="74" cy="16" r="4.5"/></g>
+  <g filter="url(#cn-fuzz)">
+    <path d="M34 96 q-24 4 -26 -8 q8 4 24 -4z" fill="#86c824"/>
+    <ellipse cx="44" cy="104" rx="12" ry="9" fill="#86c824"/><ellipse cx="78" cy="104" rx="12" ry="9" fill="#86c824"/>
+    <ellipse cx="60" cy="82" rx="26" ry="27" fill="#8fd12a"/>
+    <ellipse cx="35" cy="78" rx="8" ry="15" fill="#86c824" transform="rotate(16 35 78)"/><ellipse cx="85" cy="78" rx="8" ry="15" fill="#86c824" transform="rotate(-16 85 78)"/>
+    <ellipse cx="60" cy="44" rx="25" ry="24" fill="#8fd12a"/>
+  </g>
+  <ellipse cx="44" cy="110" rx="9" ry="3.6" fill="#efe9dc"/><ellipse cx="78" cy="110" rx="9" ry="3.6" fill="#efe9dc"/>
+  <path d="M41 30 L33 14 L48 25 Z" fill="#ece6dc" stroke="#d8d0c2" stroke-width=".8" stroke-linejoin="round"/>
+  <path d="M79 30 L88 15 L72 25 Z" fill="#ece6dc" stroke="#d8d0c2" stroke-width=".8" stroke-linejoin="round"/>
+  ${EYES(49, 71, 46, 3.3)}
+  <path d="M54 52 L59 31 L66 52 Q60 55 54 52 Z" fill="#ece6dc" stroke="#d8d0c2" stroke-width=".8" stroke-linejoin="round"/>
+  <ellipse cx="44" cy="54" rx="4" ry="2.4" fill="#ff9fb2" opacity=".55"/><ellipse cx="76" cy="54" rx="4" ry="2.4" fill="#ff9fb2" opacity=".55"/>
+  <path class="m-norm" d="M55 59 q5 4 10 0" fill="none" stroke="#2a2740" stroke-width="1.8" stroke-linecap="round"/>
+  <path class="m-sad" d="M55 61.5 q5 -4 10 0" fill="none" stroke="#2a2740" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>`;
+}
+function pepitoSVG() {
+  return `<svg viewBox="0 0 120 120" role="img" aria-label="Pepito, el osito de Emma" style="--lid:#d8ae78">
+  <defs>
+    <filter id="pp-fuzz" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.6"/></filter>
+    <pattern id="pp-ging" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#f4f1ea"/><rect width="1.5" height="3" fill="#3a3540" opacity=".6"/><rect width="3" height="1.5" fill="#3a3540" opacity=".6"/></pattern>
+  </defs>
+  <ellipse cx="60" cy="113" rx="50" ry="5" fill="rgb(0 0 0/.12)"/>
+  <g filter="url(#pp-fuzz)">
+    <ellipse cx="27" cy="101" rx="25" ry="11" fill="#cfa370" transform="rotate(14 27 101)"/>
+    <ellipse cx="93" cy="101" rx="25" ry="11" fill="#cfa370" transform="rotate(-14 93 101)"/>
+    <ellipse cx="60" cy="84" rx="28" ry="26" fill="#d8ae78"/>
+    <ellipse cx="33" cy="84" rx="9.5" ry="19" fill="#cfa370" transform="rotate(14 33 84)"/>
+    <ellipse cx="87" cy="84" rx="9.5" ry="19" fill="#cfa370" transform="rotate(-14 87 84)"/>
+    <circle cx="36" cy="25" r="9.5" fill="#cfa370"/><circle cx="84" cy="25" r="9.5" fill="#cfa370"/>
+    <ellipse cx="60" cy="45" rx="28" ry="25" fill="#d8ae78"/>
+  </g>
+  <ellipse cx="7" cy="104" rx="7" ry="9.5" fill="#f0dcbc"/><ellipse cx="113" cy="104" rx="7" ry="9.5" fill="#f0dcbc"/>
+  <circle cx="36" cy="25" r="5" fill="#e3c193"/><circle cx="84" cy="25" r="5" fill="#e3c193"/>
+  <path d="M27 81 l12 -4 l2 6 l-12 4z" fill="#3fb0e3"/>
+  <path d="M36 66 Q60 76 84 66 L86 72 Q72 86 60 86 Q48 86 34 72 Z" fill="#3fb0e3"/>
+  <path d="M60 72 l-10 -5 l1 11 z M60 72 l10 -5 l-1 11 z" fill="url(#pp-ging)" stroke="#3a3540" stroke-width=".4"/>
+  <path d="M58 72 l-5 12 l3 0 l3 -9 z M62 72 l5 12 l-3 0 l-3 -9 z" fill="url(#pp-ging)" stroke="#3a3540" stroke-width=".4"/>
+  <circle cx="60" cy="72" r="2.2" fill="url(#pp-ging)" stroke="#3a3540" stroke-width=".4"/>
+  <ellipse cx="60" cy="55" rx="14" ry="11" fill="#f0dcbc"/>
+  <ellipse cx="61" cy="52" rx="7.5" ry="5.8" fill="#5b3a31"/><ellipse cx="59" cy="50.3" rx="2.4" ry="1.3" fill="#8a655a"/>
+  <path class="m-norm" d="M61 58 v2.5 M57 61.5 q4 2.5 8 0" fill="none" stroke="#5b3a31" stroke-width="1.6" stroke-linecap="round"/>
+  <path class="m-sad" d="M61 58 v2 M56.5 63 q4.5 -3 9 0" fill="none" stroke="#5b3a31" stroke-width="1.6" stroke-linecap="round"/>
+  ${EYES(51, 70, 42, 3.2)}
+  </svg>`;
+}
+const MASCOT = { Dani: { name: "Cuernitos", svg: cuernitosSVG }, Emma: { name: "Pepito", svg: pepitoSVG } };
+</script>
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = s => String(s || "").toLowerCase().replace(/[’‘`´]/g, "'").replace(/[.,!?¿¡;:"()]/g, "").replace(/-/g, " ").replace(/\s+/g, " ").trim();
+const toks = t => norm(t).split(" ").filter(Boolean);
+const NUM = { zero: "0", one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", ten: "10", eleven: "11", twelve: "12", twenty: "20" };
+const canon = w => NUM[w] || w.replace(/'s$/, "s");
+const MASCOT = { Dani: { name: "Cuernitos", svg: cuernitosSVG }, Emma: { name: "Pepito", svg: pepitoSVG } };
+const buddy = p => `<span class="buddy" data-mood="idle" data-who="${p}">${MASCOT[p].svg()}</span>`;
+let me = ls.get("ij-me") === "Emma" ? "Emma" : "Dani";
+
+/* ---------- voz natural ---------- */
+const TTS = "speechSynthesis" in window;
+let VOICE = null;
+const GOOD = [/Natural/i, /Neural/i, /Premium/i, /Enhanced/i, /Mejorad/i, /Google UK English Female/i, /Google UK English Male/i, /Google US English/i, /Serena/i, /Daniel/i, /Kate/i, /Arthur/i, /Martha/i, /Sonia/i, /Libby/i, /Ryan/i, /Samantha/i, /Karen/i, /Moira/i];
+function pickVoice() {
+  if (!TTS) return null;
+  const vs = speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang));
+  if (!vs.length) return null;
+  const score = v => { let s = 0; GOOD.forEach((re, i) => { if (re.test(v.name)) s += (GOOD.length - i) * (i < 5 ? 10 : 1); }); if (/en[-_](GB|IE)/i.test(v.lang)) s += 6; if (/en[-_]US/i.test(v.lang)) s += 3; if (/compact|eloquence|novelty|bad news|bells|bubbles|cellos|jester|organ|trinoids|whisper|zarvox|albert|bahh|boing|fred|junior|ralph|superstar|grandma|grandpa|rocko|shelley|reed|sandy|flo|eddy/i.test(v.name)) s -= 100; return s; };
+  return VOICE = vs.sort((a, b) => score(b) - score(a))[0];
+}
+if (TTS) { pickVoice(); speechSynthesis.onvoiceschanged = () => pickVoice(); }
+function speak(text, rate = 1) {
+  if (!TTS) return;
+  try {
+    speechSynthesis.cancel();
+    const parts = String(text).match(/[^.!?]+[.!?]*/g) || [text];
+    parts.forEach(p => { const u = new SpeechSynthesisUtterance(p.trim()); const v = VOICE || pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-GB"; u.rate = rate; u.pitch = 1; speechSynthesis.speak(u); });
+  } catch {}
+}
+
+/* ---------- reconocimiento de voz ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, recOn = false;
+function listen({ onLive, onFinal, onFail }) {
+  if (!SR) { onFail("Este navegador no reconoce voz. Abre esta página en Safari (iPhone) o Chrome (Android/ordenador)."); return; }
+  stopListen();
+  try { speechSynthesis.cancel(); } catch {}
+  rec = new SR(); rec.lang = "en-GB"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 3;
+  let finalText = "", alts = [];
+  rec.onresult = ev => {
+    let t = "";
+    for (const r of ev.results) { t += r[0].transcript; if (r.isFinal) alts = [...r].map(a => a.transcript); }
+    finalText = t; onLive(t);
+  };
+  rec.onerror = ev => {
+    recOn = false; setMic(false);
+    if (ev.error === "not-allowed" || ev.error === "service-not-allowed") onFail("Has bloqueado el micrófono para esta página. Actívalo en los ajustes del navegador (Safari: aA › Ajustes del sitio web › Micrófono › Permitir) y recarga.");
+    else if (ev.error === "no-speech") onFail("No te he oído. Pulsa el micro y habla cerca del móvil.");
+    else if (ev.error !== "aborted") onFail("El reconocimiento se ha cortado (" + ev.error + "). Pulsa otra vez.");
+  };
+  rec.onend = () => { recOn = false; setMic(false); if (finalText.trim()) onFinal(finalText, alts); };
+  recOn = true; setMic(true); rec.start();
+}
+function stopListen() { if (rec) { try { rec.stop(); } catch {} } }
+function setMic(on) { const m = $("#mic"); if (m) { m.classList.toggle("on", on); m.setAttribute("aria-label", on ? "Parar" : "Hablar"); } const l = $("#mic-label"); if (l) l.textContent = on ? "Te escucho… (para cuando quieras)" : "Pulsa y habla"; }
+const MIC = `<svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
+const stage = () => `<div class="stage"><button class="mic" id="mic" data-a="mic" aria-label="Hablar">${MIC}</button><p class="mic-label" id="mic-label">Pulsa y habla</p><p class="live" id="live"></p></div>`;
+
+/* ---------- comparación de palabras ---------- */
+function align(target, saidList) {
+  let best = null;
+  for (const said of saidList) {
+    const a = toks(target).map(canon), b = toks(said).map(canon), n = a.length, m = b.length;
+    const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    const ok = new Array(n).fill(false); let i = 0, j = 0;
+    while (i < n && j < m) { if (a[i] === b[j]) { ok[i] = true; i++; j++; } else if (dp[i + 1][j] >= dp[i][j + 1]) i++; else j++; }
+    const r = { words: toks(target), ok, pct: n ? Math.round(ok.filter(Boolean).length / n * 100) : 0, said };
+    if (!best || r.pct > best.pct) best = r;
+  }
+  return best;
+}
+const wordTip = w => { const x = PRON.words.find(p => norm(p.w) === w); return x ? `<span class="ipa">${esc(x.ipa)}</span> · ${esc(x.es_tip)}` : ""; };
+
+/* ---------- corrección gramatical (LanguageTool) ---------- */
+async function grammarCheck(text) {
+  const body = new URLSearchParams({ text, language: "en-GB", level: "default" });
+  const r = await fetch("https://api.languagetool.org/v2/check", { method: "POST", body });
+  if (!r.ok) throw new Error("http " + r.status);
+  const j = await r.json();
+  const ms = (j.matches || []).filter(m => !/UPPERCASE_SENTENCE_START|PUNCTUATION|COMMA|WHITESPACE|EN_QUOTES|DOUBLE_PUNCTUATION|SENTENCE_WHITESPACE/i.test(m.rule?.id || "") && m.rule?.category?.id !== "TYPOGRAPHY" && m.rule?.category?.id !== "PUNCTUATION");
+  let corrected = text;
+  [...ms].sort((a, b) => b.offset - a.offset).forEach(m => { if (m.replacements?.[0]) corrected = corrected.slice(0, m.offset) + m.replacements[0].value + corrected.slice(m.offset + m.length); });
+  const errors = ms.map(m => ({ wrong: text.substr(m.offset, m.length), right: m.replacements?.[0]?.value || "", why: m.message, cat: m.rule?.category?.name || "" }));
+  for (const [re, fix, why] of SPANISH_RULES) { const mm = corrected.match(re); if (mm) { const right = mm[0].replace(re, fix); errors.push({ wrong: mm[0], right, why }); corrected = corrected.replace(re, fix); } }
+  return { errors, corrected };
+}
+/* errores típicos de hispanohablantes que LanguageTool no siempre detecta */
+const SPANISH_RULES = [
+  [/\bsince (\w+|\d+) (years?|months?|weeks?|days?|hours?)\b/i, "for $1 $2", "Con un periodo de tiempo se usa «for», no «since» (since + momento concreto)."],
+  [/\bI have (\d+|\w+) years( old)?\b/i, "I am $1 years old", "La edad se dice con «to be»: I am 20 years old."],
+  [/\bI have (hunger|thirst|sleep|cold|heat)\b/i, (m, w) => "I am " + ({ hunger: "hungry", thirst: "thirsty", sleep: "sleepy", cold: "cold", heat: "hot" })[w.toLowerCase()], "Hambre, sed, sueño, frío y calor van con «to be»."],
+  [/\bpeople is\b/i, "people are", "«People» es plural: people are."],
+  [/\bexplain me\b/i, "explain to me", "Se dice «explain to me» / «explain something to me»."],
+  [/\bdepend(s|ed|ing)? of\b/i, "depend$1 on", "«Depend on», no «depend of»."],
+  [/\bmore (better|worse|bigger|easier|happier)\b/i, "$1", "No se usa «more» con comparativos en -er."],
+  [/\b(he|she|it) don'?t\b/i, "$1 doesn't", "Tercera persona: doesn't."],
+  [/\bI am agree\b/i, "I agree", "«Agree» es un verbo: I agree."],
+  [/\bthe (life|nature|people) (is|are) (very |so )?\w+\b/i, m => m.replace(/^the /i, ""), "En general, sin «the»: Life is…, People are…"],
+  [/\bin the (morning|afternoon|evening) of (monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i, "on $2 $1", "Con un día concreto: on Monday morning."],
+  [/\bmake (a )?(photo|photos|homework|exercise|sport)\b/i, (m, a, w) => (/homework|exercise|sport/i.test(w) ? "do " : "take ") + (a || "") + w, "Se dice take a photo, do homework, do exercise, do sport."]
+];
+const ES_HINT = [[/agreement|singular|plural|does not agree|3rd person/i, "Concordancia sujeto-verbo (he/she/it + -s)"], [/since|for .* present perfect|present perfect/i, "Usa present perfect (have/has + participio)"], [/article|“a”|“an”|'an'|'a'/i, "Artículo a / an / the"], [/spelling|misspell|possible spelling/i, "Ortografía o palabra mal reconocida (¿pronunciación?)"], [/preposition/i, "Preposición"], [/verb form|past tense|tense/i, "Tiempo verbal"]];
+const esHint = m => (ES_HINT.find(([re]) => re.test(m)) || [, ""])[1];
+
+/* ---------- estado y pantallas ---------- */
+let R = null;
+const STATS_KEY = "ij-habla-stats";
+function saveStat(kind, pct) { try { const s = JSON.parse(ls.get(STATS_KEY) || "{}"); const k = me + "|" + kind; s[k] = { best: Math.max(s[k]?.best || 0, pct), plays: (s[k]?.plays || 0) + 1, last: pct }; ls.set(STATS_KEY, JSON.stringify(s)); } catch {} }
+function stat(kind) { try { return JSON.parse(ls.get(STATS_KEY) || "{}")[me + "|" + kind]; } catch { return null; } }
+function react(mood) { const b = document.querySelector("#corner .buddy"); if (!b) return; b.dataset.mood = "idle"; void b.offsetWidth; b.dataset.mood = mood; clearTimeout(react.t); react.t = setTimeout(() => b.dataset.mood = "idle", mood === "sad" ? 2200 : 1700); }
+const MODES = [
+  ["frases", "Leer frases en voz alta", "Lees, te escucho y marco en verde lo que se entiende y en rojo lo que no, con fonética y consejo."],
+  ["palabras", "Palabras difíciles", "Las que más fallamos los hispanohablantes: comfortable, vegetable, thought…"],
+  ["pares", "Pares mínimos", "Oyes ship o sheep y eliges; luego la dices tú y te digo si se ha entendido."],
+  ["repite", "Escucha y repite (shadowing)", "Oyes una frase con voz natural y la repites con el mismo ritmo."],
+  ["responde", "Responde y te corrijo", "Pregunta de la parte 1 del examen: respondes hablando y te corrijo la gramática al momento."],
+  ["compara", "Describe y compara · 1 minuto", "Dos escenas, cronómetro de un minuto y corrección de lo que digas."]
+];
+function home() {
+  R = null;
+  document.querySelectorAll(".who button").forEach(b => { b.setAttribute("aria-pressed", String(b.dataset.p === me)); if (!b.querySelector(".buddy")) b.insertAdjacentHTML("afterbegin", buddy(b.dataset.p)); });
+  $("#corner").innerHTML = buddy(me);
+  $("#main").innerHTML = `<div class="wrap" style="gap:14px">
+    <div class="hero"><div><h2>Hola, ${me}</h2><p>Practica speaking con micrófono de verdad. ${MASCOT[me].name} baila cuando se te entiende.</p></div>${buddy(me)}</div>
+    ${SR ? "" : `<div class="feed ko"><strong>Este navegador no reconoce voz</strong><span class="tip">Abre esta página en Safari (iPhone/iPad/Mac) o en Chrome (Android/ordenador).</span></div>`}
+    <div class="modes">${MODES.map(([k, t, d]) => { const s = stat(k); return `<button class="mode" data-mode="${k}"><strong>${t}</strong><span>${d}</span>${s ? `<span>Mejor: ${s.best}% · ${s.plays} rondas</span>` : ""}</button>`; }).join("")}</div>
+  </div>`;
+  $("#foot").innerHTML = `La primera vez el navegador pide permiso para el micrófono: pulsa «Permitir». En «Responde» el texto que dices se envía a LanguageTool para corregirlo. La voz que lees es la mejor que tiene tu dispositivo: en iPhone puedes descargar voces mejoradas en Ajustes › Accesibilidad › Contenido leído › Voces › Inglés.`;
+}
+function start(kind) {
+  $("#foot").innerHTML = "";
+  let items = [];
+  if (kind === "frases") items = shuffle(PRON.sentences).slice(0, 8).map(x => ({ text: x.s, tip: x.es_tip }));
+  if (kind === "palabras") items = shuffle(PRON.words).slice(0, 10).map(x => ({ text: x.w, ipa: x.ipa, tip: x.es_tip, es: x.es }));
+  if (kind === "pares") items = shuffle(PRON.pairs).slice(0, 8).map(x => ({ ...x, heard: Math.random() < .5 ? "a" : "b" }));
+  if (kind === "repite") items = shuffle(PRON.sentences).slice(0, 8).map(x => ({ text: x.s, tip: x.es_tip }));
+  if (kind === "responde") items = shuffle(PRON.speaking_q.map(x => x.q).concat(SPK.p1)).slice(0, 6).map(q => ({ q }));
+  if (kind === "compara") items = shuffle(SPK.p2).slice(0, 3).map(x => ({ q: x.q, scene: x }));
+  R = { kind, items, k: 0, res: [], st: "ask" };
+  render();
+}
+function header() {
+  const t = MODES.find(m => m[0] === R.kind)[1];
+  return `<div class="row" style="justify-content:space-between"><button class="back" data-a="home">‹ Volver</button><span class="eyebrow">${esc(t)}</span></div>
+  <div class="prog">${R.items.map((_, i) => `<i class="${i < R.res.length ? (R.res[i] ? "ok" : "ko") : i === R.k ? "cur" : ""}"></i>`).join("")}</div>`;
+}
+const nextBtn = () => `<button class="btn primary" data-a="next">${R.k === R.items.length - 1 ? "Ver resultado" : "Siguiente"}</button>`;
+function render() {
+  const main = $("#main");
+  if (R.k >= R.items.length) {
+    const ok = R.res.filter(Boolean).length, pct = Math.round(ok / R.items.length * 100);
+    saveStat(R.kind, pct); react(pct >= 70 ? "happy" : "sad");
+    main.innerHTML = `<div class="wrap">${header()}<div class="end"><p class="big">${pct}%</p><p>${ok} de ${R.items.length} bien.</p><div class="row"><button class="btn primary" data-a="again">Otra ronda</button><button class="btn soft" data-a="home">Menú</button></div></div></div>`;
+    return;
+  }
+  const it = R.items[R.k];
+  let body = "";
+  const k = R.kind;
+  if (k === "frases" || k === "palabras" || k === "repite") {
+    const hidden = k === "repite" && R.st === "ask" && !R.reveal;
+    const marks = R.al ? R.al.words.map((w, i) => `<span class="w ${R.al.ok[i] ? "ok" : "ko"}">${esc(w)}</span>`).join(" ") : hidden ? "Escucha y repite…" : esc(it.text);
+    const missed = R.al ? [...new Set(R.al.words.filter((w, i) => !R.al.ok[i]))] : [];
+    body = `<p class="eyebrow">${k === "repite" ? "Escucha y repite con el mismo ritmo" : "Léelo en voz alta"}${it.es ? " · " + esc(it.es) : ""}</p>
+      <p class="target">${marks}</p>${it.ipa ? `<p class="ipa">${esc(it.ipa)}</p>` : ""}
+      <div class="row"><button class="btn soft small" data-a="say">Escuchar</button>${k === "repite" && hidden ? `<button class="btn ghost small" data-a="reveal">Ver texto</button>` : ""}</div>
+      ${R.st === "ask" ? stage() : ""}
+      ${R.st === "done" ? `<div class="feed ${R.al.pct >= 85 ? "" : R.al.pct >= 50 ? "mid" : "ko"}"><strong>${R.al.pct >= 85 ? "¡Se te entiende perfectamente!" : R.al.pct >= 50 ? "Casi: mira las palabras en rojo" : "No se ha entendido bien"}</strong>
+        <span>He oído: «${esc(R.al.said)}»</span>
+        ${missed.map(w => `<span>${esc(w)} ${wordTip(w)} <button class="btn ghost small" data-say="${esc(w)}">Oír</button></span>`).join("")}
+        ${it.tip ? `<span class="tip">${esc(it.tip)}</span>` : ""}</div>
+        <div class="row"><button class="btn soft" data-a="retry">Repetir</button>${nextBtn()}</div>` : ""}`;
+  } else if (k === "pares") {
+    const w = it[it.heard];
+    if (R.st === "ask") body = `<p class="eyebrow">¿Qué palabra oyes?</p><div class="row"><button class="btn soft" data-a="sayw">Escuchar otra vez</button></div>
+      <div class="choice"><button data-pick="a">${esc(it.a)}<br><span class="ipa" style="font-size:.85rem">${esc(it.ipa_a)}</span></button><button data-pick="b">${esc(it.b)}<br><span class="ipa" style="font-size:.85rem">${esc(it.ipa_b)}</span></button></div>`;
+    else if (R.st === "say") body = `<div class="feed ${R.pairOk ? "" : "ko"}"><strong>${R.pairOk ? "¡Bien oído!" : "Era la otra"}</strong><span>Sonaba <b>${esc(w)}</b> ${esc(it["ipa_" + it.heard])}</span><span class="tip">${esc(it.es_tip)}</span></div>
+      <p class="eyebrow">Ahora dilo tú</p><p class="target">${esc(w)}</p>${stage()}<div class="row"><button class="btn ghost" data-a="next">Saltar</button></div>`;
+    else body = `<div class="feed ${R.sayOk ? "" : "ko"}"><strong>${R.sayOk ? "¡Se ha entendido " + esc(w) + "!" : "Se ha entendido otra cosa"}</strong><span>He oído: «${esc(R.said)}»</span>${R.sayOk ? "" : `<span class="tip">${esc(it.es_tip)}</span>`}</div><div class="row"><button class="btn soft" data-a="retry">Repetir</button>${nextBtn()}</div>`;
+  } else {
+    const f = R.fb;
+    body = `<p class="eyebrow">${k === "compara" ? "Compara las dos escenas (1 minuto)" : "Pregunta del examen · parte 1"}</p><p class="target" style="font-size:clamp(1.25rem,5vw,1.7rem)">${esc(it.q)}</p>
+      ${it.scene ? `<div class="scene"><div>${esc(it.scene.a)}</div><div>${esc(it.scene.b2)}</div></div>` : ""}
+      <div class="row"><button class="btn soft small" data-a="sayq">Oír la pregunta</button>${k === "compara" && R.st === "ask" ? `<span class="timer" id="timer">1:00</span>` : ""}</div>
+      ${R.st === "ask" ? stage() : ""}
+      ${R.st === "wait" ? `<div class="feed mid"><strong>Corrigiendo…</strong><span>He oído: «${esc(R.said)}»</span></div>` : ""}
+      ${R.st === "done" && f ? `<div class="feed ${f.errors.length ? (f.errors.length > 2 ? "ko" : "mid") : ""}"><strong>${f.errors.length ? f.errors.length + (f.errors.length > 1 ? " cosas que corregir" : " cosa que corregir") : "¡Sin errores de gramática!"}</strong>
+        <span>Has dicho: «${esc(R.said)}»</span>
+        ${f.errors.length ? `<span>Mejor así: <b>${esc(f.corrected)}</b> <button class="btn ghost small" data-say="${esc(f.corrected)}">Oír</button></span>` : ""}
+        ${f.errors.map(e => `<span class="err"><span><s>${esc(e.wrong)}</s> → <b>${esc(e.right || "?")}</b></span><span class="tip">${esc(esHint(e.why) || e.why)}</span></span>`).join("")}
+        ${R.words < (k === "compara" ? 35 : 15) ? `<span class="tip">Respuesta corta (${R.words} palabras). En el examen ${k === "compara" ? "habla el minuto entero: compara (whereas, while, both) y especula (might, it looks as if)." : "amplía con una razón o un ejemplo: «…because…», «For example…»."}</span>` : `<span class="tip">Buena extensión (${R.words} palabras).</span>`}</div>
+        <div class="row"><button class="btn soft" data-a="retry">Responder otra vez</button>${nextBtn()}</div>` : ""}
+      ${R.st === "fail" ? `<div class="feed ko"><strong>No he podido corregir la gramática</strong><span>He oído: «${esc(R.said)}». Revisa la conexión y prueba otra vez.</span></div><div class="row"><button class="btn soft" data-a="retry">Repetir</button>${nextBtn()}</div>` : ""}`;
+  }
+  main.innerHTML = `<div class="wrap">${header()}${body}<p class="mic-label" id="err" role="alert"></p></div>`;
+  if (R.st === "ask" && !R.spoken) {
+    R.spoken = true;
+    if (k === "pares") setTimeout(() => speak(it[it.heard]), 300);
+    if (k === "repite") setTimeout(() => speak(it.text), 300);
+    if (k === "responde" || k === "compara") setTimeout(() => speak(it.q), 300);
+  }
+}
+async function onFinal(text, alts) {
+  const it = R.items[R.k], k = R.kind; R.said = text.trim();
+  if (k === "frases" || k === "palabras" || k === "repite") {
+    R.al = align(it.text, [text, ...alts]); R.st = "done"; if (R.res.length === R.k) R.res.push(R.al.pct >= 85);
+    react(R.al.pct >= 85 ? "happy" : "sad"); render();
+  } else if (k === "pares") {
+    const w = norm(it[it.heard]); R.sayOk = [text, ...alts].some(t => toks(t).includes(w)); R.st = "said";
+    if (R.res.length === R.k) R.res.push(R.pairOk && R.sayOk); react(R.sayOk ? "happy" : "sad"); render();
+  } else {
+    clearInterval(R.timer); R.words = toks(text).length; R.st = "wait"; render();
+    try { R.fb = await grammarCheck(text); R.st = "done"; if (R.res.length === R.k) R.res.push(R.fb.errors.length <= 1); react(R.fb.errors.length ? (R.fb.errors.length > 2 ? "sad" : "happy") : "happy"); }
+    catch { R.st = "fail"; }
+    render();
+  }
+}
+function onLive(t) { const l = $("#live"); if (l) l.textContent = t; }
+function onFail(msg) { const e = $("#err"); if (e) e.textContent = msg; }
+function micPressed() {
+  if (recOn) return stopListen();
+  if (R.kind === "compara" && !R.timer) {
+    let left = 60; R.timer = setInterval(() => { left--; const t = $("#timer"); if (t) t.textContent = "0:" + String(Math.max(0, left)).padStart(2, "0"); if (left <= 0) { clearInterval(R.timer); stopListen(); } }, 1000);
+  }
+  if (R.kind === "compara") { // escucha continua durante el minuto
+    if (!SR) return onFail("Este navegador no reconoce voz.");
+    stopListen(); rec = new SR(); rec.lang = "en-GB"; rec.interimResults = true; rec.continuous = true;
+    let txt = ""; rec.onresult = ev => { txt = [...ev.results].map(r => r[0].transcript).join(" "); onLive(txt); };
+    rec.onerror = ev => { if (ev.error === "not-allowed") onFail("Permite el micrófono en los ajustes del navegador y recarga."); };
+    rec.onend = () => { recOn = false; setMic(false); clearInterval(R.timer); R.timer = null; if (txt.trim()) onFinal(txt, []); };
+    recOn = true; setMic(true); rec.start(); return;
+  }
+  listen({ onLive, onFinal, onFail });
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.p) { me = b.dataset.p; ls.set("ij-me", me); return R ? (($("#corner").innerHTML = buddy(me)), document.querySelectorAll(".who button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.p === me)))) : home(); }
+  if (b.dataset.mode) return start(b.dataset.mode);
+  if (b.dataset.say) return speak(b.dataset.say);
+  if (b.dataset.pick) { const it = R.items[R.k]; R.pairOk = b.dataset.pick === it.heard; R.st = "say"; react(R.pairOk ? "happy" : "sad"); return render(); }
+  const a = b.dataset.a, it = R?.items[R.k];
+  if (a === "home") { stopListen(); return home(); }
+  if (a === "mic") return micPressed();
+  if (a === "say") return speak(it.text);
+  if (a === "sayw") return speak(it[it.heard]);
+  if (a === "sayq") return speak(it.q);
+  if (a === "reveal") { R.reveal = true; return render(); }
+  if (a === "retry") { stopListen(); R.st = R.kind === "pares" ? "say" : "ask"; R.al = null; R.fb = null; R.timer = null; return render(); }
+  if (a === "next") { stopListen(); if (R.res.length === R.k) R.res.push(false); R.k++; R.st = "ask"; R.al = null; R.fb = null; R.spoken = false; R.reveal = false; R.timer = null; return render(); }
+  if (a === "again") return start(R.kind);
+});
+const hash = location.hash.replace("#", "");
+home();
+if (hash && MODES.some(m => m[0] === hash)) start(hash);
+})();
+</script>
+</body>
+</html>
