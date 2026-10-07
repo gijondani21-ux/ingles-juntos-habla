@@ -508,14 +508,14 @@ function topicPrompt(t) {
 }
 const systemPrompt = t => `You are Alex, a friendly native English speaker chatting with a Spanish learner (around B1, preparing Cambridge B2 First Speaking). Talk about ${topicPrompt(t)}.
 Rules: reply in natural spoken English, 1 to 3 short sentences, then ask one follow-up question to keep the conversation going. Use vocabulary a B1-B2 learner can follow. Do not correct mistakes during the chat; if something is unclear, ask what they meant. The learner's words come from speech recognition, so ignore missing punctuation. Never use lists, emojis or markdown.`;
-async function claudeCall(system, messages, maxTokens = 1024) {
+async function claudeCall(system, messages, maxTokens = 1024, plain = false) {
   const key = ls.get(KEY);
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true", "anthropic-beta": "server-side-fallback-2026-07-01" },
-    body: JSON.stringify({ model: "claude-opus-5-5", max_tokens: maxTokens, output_config: { effort: "low" }, fallbacks: "default", system, messages })
-  });
+  const headers = { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
+  const body = { model: "claude-opus-5-5", max_tokens: maxTokens, output_config: { effort: "low" }, system, messages };
+  if (!plain) { headers["anthropic-beta"] = "server-side-fallback-2026-07-01"; body.fallbacks = "default"; }
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({}));
+  if (r.status === 400 && !plain && /fallback|beta/i.test(j?.error?.message || "")) return claudeCall(system, messages, maxTokens, true);
   if (!r.ok) { const e = new Error(j?.error?.message || ("HTTP " + r.status)); e.status = r.status; throw e; }
   if (j.stop_reason === "refusal") throw new Error("Claude no ha querido responder a eso. Prueba con otra frase.");
   return (j.content || []).filter(b => b.type === "text").map(b => b.text).join(" ").trim();
