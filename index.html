@@ -454,7 +454,7 @@ document.addEventListener("click", e => {
   if (a === "delkey") { try { localStorage.removeItem(KEY); } catch {} return chatHome(); }
   if (a === "chatback") { stopListen(); try { speechSynthesis.cancel(); } catch {} C = null; return chatHome(); }
   if (a === "chatend") { stopListen(); try { speechSynthesis.cancel(); } catch {} return chatFeedback(); }
-  if (a === "copyprompt") { const txt = systemPrompt(C.t) + "\n\nWhen I say 'feedback', stop and give me my main mistakes with corrections in Spanish. Let's start: greet me and ask your first question."; navigator.clipboard?.writeText(txt).then(() => { $("#copied").textContent = "Copiado. Pégalo en Claude y pulsa el botón de voz."; }, () => { $("#copied").textContent = txt; }); return; }
+  if (a === "copyprompt") { const txt = "NUEVA PRÁCTICA (página de voz): charla libre, no un examen. Durante esta charla haz de Alex, como te explico, y cuando diga 'feedback' vuelve a ser el examinador y dame la valoración en español.\n\n" + systemPrompt(C.t) + "\n\nWhen I say 'feedback', stop and give me my main mistakes with corrections in Spanish. Let's start: greet me and ask your first question."; navigator.clipboard?.writeText(txt).then(() => { $("#copied").textContent = "Copiado. Pégalo en Claude y pulsa el botón de voz."; }, () => { $("#copied").textContent = txt; }); return; }
   if (a === "home") { stopListen(); return home(); }
   if (a === "mic") return micPressed();
   if (a === "say") return speak(it.text);
@@ -487,17 +487,15 @@ const TOPICS = [
   ["Planes de futuro", "your plans for the future and your career goals"]
 ];
 let C = null;
+// Chat fijo de Claude de Dani: el speaking va con su suscripción, sin clave de API
+const CHAT_URL = "https://claude.ai/chat/3c43db7f-a465-4c52-8d15-6aac8bd7d3a8";
 function chatHome() {
   R = { kind: "charla", items: [], k: 0, res: [] };
   const key = ls.get(KEY);
   $("#main").innerHTML = `<div class="wrap">
     <div class="row" style="justify-content:space-between"><button class="back" data-a="home">‹ Volver</button><span class="eyebrow">Conversación con IA</span></div>
-    ${key ? "" : `<div class="keybox"><strong>Para hablar con Claude desde aquí hace falta una clave de la API de Anthropic</strong>
-      <span class="note">Claude no deja usar el micrófono dentro de su app, y esta página no puede usar tu suscripción de claude.ai. Con tu propia clave, la conversación cuesta unos céntimos (aprox. 0,10–0,30 € por charla de 10 minutos) y se cobra en tu cuenta de la API, aparte de la suscripción.</span>
-      <span class="note">1) Entra en console.anthropic.com › API keys, crea una clave y añade algo de saldo. 2) Pégala aquí. Se guarda solo en este móvil y solo se envía a api.anthropic.com.</span>
-      <input id="key-in" type="password" autocomplete="off" placeholder="sk-ant-…" aria-label="Clave de la API de Anthropic">
-      <div class="row"><button class="btn primary small" data-a="savekey">Guardar clave</button><a class="btn soft small" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Abrir la consola</a></div>
-      <span class="note">Sin clave: elige un tema abajo y pulsa «Hablar en la app de Claude». Copio las instrucciones y las pegas en el modo voz de la app de Claude.</span></div>`}
+    ${key ? "" : `<div class="keybox"><strong>Conversación en vuestro chat de Claude</strong>
+      <span class="note">Elige un tema: copio las instrucciones y abres el chat fijo de Dani, que ya tiene todo el contexto. Allí pegas, envías y pulsas el botón de voz. Va con la suscripción de Claude, sin gastar créditos.</span></div>`}
     <p class="eyebrow">Elige de qué hablar</p>
     <div class="topics">${TOPICS.map(([t], i) => `<button data-topic="${i}">${esc(t)}</button>`).join("")}<button data-topic="foto">Sobre una foto</button></div>
     ${key ? `<div class="row"><button class="btn ghost small" data-a="delkey">Borrar la clave de este móvil</button></div>` : ""}
@@ -535,8 +533,8 @@ function renderChat() {
       ${stage()}
       <label class="toggle"><input type="checkbox" id="hf" ${C.handsfree ? "checked" : ""}> Manos libres: al terminar Alex, el micro se abre solo</label>
       <div class="row"><button class="btn soft" data-a="chatend" ${C.msgs.filter(m => m.role === "user").length ? "" : "disabled"}>Terminar y ver mis correcciones</button></div>
-      <div id="fb"></div>` : `<div class="keybox"><strong>Sin clave de API</strong><span class="note">Copia estas instrucciones, abre la app de Claude, pégalas y activa el modo voz para charlar.</span>
-      <div class="row"><button class="btn primary" data-a="copyprompt">Copiar instrucciones</button><a class="btn soft" href="https://claude.ai/new" target="_blank" rel="noopener">Abrir Claude</a></div><span class="note" id="copied"></span></div>`}
+      <div id="fb"></div>` : `<div class="keybox"><strong>Hablar en el chat de Claude</strong><span class="note">Copia las instrucciones, abre vuestro chat de Claude, pégalas y activa el modo voz para charlar.</span>
+      <div class="row"><button class="btn primary" data-a="copyprompt">Copiar instrucciones</button><a class="btn soft" href="${CHAT_URL}" target="_blank" rel="noopener">Abrir nuestro chat</a></div><span class="note" id="copied"></span></div>`}
   </div>`;
   const ch = $("#chat"); if (ch) ch.lastElementChild?.scrollIntoView({ block: "nearest" });
 }
