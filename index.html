@@ -446,12 +446,13 @@ document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.p) { me = b.dataset.p; ls.set("ij-me", me); return R ? (($("#corner").innerHTML = buddy(me)), document.querySelectorAll(".who button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.p === me)))) : home(); }
   if (b.dataset.mode) return start(b.dataset.mode);
-  if (b.dataset.topic !== undefined) { const tp = b.dataset.topic; if (tp === "foto") { const i = Math.floor(Math.random() * SPK.p2.length); return startChat({ title: "Sobre una foto", photo: { ...SPK.p2[i], imgs: IMGPAIRS[i] } }); } const [title, desc] = TOPICS[Number(tp)]; return startChat({ title, desc }); }
+  if (b.dataset.topic !== undefined) { const tp = b.dataset.topic; if (tp === "foto") { const i = Math.floor(Math.random() * SPK.p2.length); return startChat({ title: "Sobre una foto", photo: { ...SPK.p2[i], imgs: IMGPAIRS[i] } }); } return startChat(pickTopic(Number(tp))); }
   if (b.dataset.say) return speak(b.dataset.say);
   if (b.dataset.pick) { const it = R.items[R.k]; R.pairOk = b.dataset.pick === it.heard; R.st = "say"; react(R.pairOk ? "happy" : "sad"); return render(); }
   const a = b.dataset.a, it = R?.items?.[R.k];
   if (a === "savekey") { const v = $("#key-in").value.trim(); if (!/^sk-ant-/.test(v)) return onFail("La clave debe empezar por sk-ant-"); ls.set(KEY, v); return chatHome(); }
   if (a === "delkey") { try { localStorage.removeItem(KEY); } catch {} return chatHome(); }
+  if (a === "reroll" && C?.t?.idx !== undefined) { stopListen(); try { speechSynthesis.cancel(); } catch {} return startChat(pickTopic(C.t.idx)); }
   if (a === "chatback") { stopListen(); try { speechSynthesis.cancel(); } catch {} C = null; return chatHome(); }
   if (a === "chatend") { stopListen(); try { speechSynthesis.cancel(); } catch {} return chatFeedback(); }
   if (a === "copyprompt") { const txt = "NUEVA PRÁCTICA (página de voz): charla libre, no un examen. Durante esta charla haz de Alex, como te explico, y cuando diga 'feedback' vuelve a ser el examinador y dame la valoración en español.\n\n" + systemPrompt(C.t) + "\n\nWhen I say 'feedback', stop and give me my main mistakes with corrections in Spanish. Let's start: greet me and ask your first question."; navigator.clipboard?.writeText(txt).then(() => { $("#copied").textContent = "Copiado. Pégalo en Claude y pulsa el botón de voz."; }, () => { $("#copied").textContent = txt; }); return; }
@@ -474,18 +475,131 @@ function photosHTML(sc) {
 
 /* ---------- conversación con IA ---------- */
 const KEY = "ij-anthropic-key";
+// Cada tema tiene un banco de situaciones; cada vez se elige una al azar, con un estilo y un reto de lengua
+// distintos, sin repetir la última. Así la charla cambia aunque se pulse siempre el mismo tema.
 const TOPICS = [
-  ["Tu ciudad", "the place where you live: what you like about it, what you would change"],
-  ["Trabajo y estudios", "work and studies: your job, your degree, balancing both"],
-  ["Viajes", "travelling: a trip you remember, a place you want to visit"],
-  ["Tiempo libre", "free time, hobbies and weekends"],
-  ["Tecnología", "technology and social media in everyday life"],
-  ["Educación", "education and what makes a good teacher or school"],
-  ["Comida", "food, cooking and eating out"],
-  ["Salud y deporte", "health, sport and a healthy lifestyle"],
-  ["Medio ambiente", "the environment and small things people can do"],
-  ["Planes de futuro", "your plans for the future and your career goals"]
+  ["Tu ciudad", [
+    "your town: three places you would show a visitor and why",
+    "what you would change in your neighbourhood if you were the mayor",
+    "how your town has changed since you were a child",
+    "living in a small town versus a big city",
+    "the best and worst things about public transport where you live",
+    "a local festival or tradition and how people celebrate it",
+    "whether young people stay in your town or leave, and why",
+    "your perfect Sunday in your town, from morning to night"]],
+  ["Trabajo y estudios", [
+    "a typical day at your job, from the moment you arrive",
+    "why you chose your degree and what you would choose now",
+    "a colleague or classmate who taught you something important",
+    "studying and working at the same time: tricks to survive",
+    "your dream job and what it would take to get there",
+    "the most difficult exam or deadline you have had",
+    "working from home versus working in an office",
+    "a short job-interview role play: you are the interviewer",
+    "what makes a good boss or a good teacher",
+    "online classes versus face-to-face classes"]],
+  ["Viajes", [
+    "the best trip you have ever taken and what made it special",
+    "a trip that went wrong and how you solved the problems",
+    "planning a weekend trip together on a small budget",
+    "travelling alone versus travelling with your partner or friends",
+    "a place you would never visit again, and why",
+    "what you always pack and what you always forget",
+    "a role play at a hotel reception: you have a problem with your room",
+    "the country you most want to visit and what you would do there"]],
+  ["Tiempo libre", [
+    "a hobby you have and how you started it",
+    "a series or film you recommend, without spoilers",
+    "what you do on a rainy weekend",
+    "a hobby you would like to try and what stops you",
+    "music in your life: concerts, favourite songs, playlists",
+    "board games, video games or sport: what you prefer with friends",
+    "the perfect birthday plan",
+    "how your free time has changed since you were a teenager"]],
+  ["Tecnología", [
+    "your phone: the apps you use most and why",
+    "a day without internet: would you survive?",
+    "social media: good things and bad things",
+    "artificial intelligence in daily life and studies",
+    "online shopping versus shopping in real shops",
+    "a gadget you could not live without",
+    "how old people and young people use technology differently",
+    "privacy online: what you share and what you keep private"]],
+  ["Educación", [
+    "your favourite teacher at school and why",
+    "what you would change in the education system",
+    "learning languages at school versus learning them as an adult",
+    "homework: useful or a waste of time?",
+    "a subject you hated and one you loved",
+    "university life in Spain: what is good and what is not",
+    "should school teach more practical life skills?",
+    "how you study best: alone, together, with music, in silence"]],
+  ["Comida", [
+    "a typical dish from Asturias and how to prepare it",
+    "the best restaurant you know and what to order there",
+    "cooking at home versus eating out",
+    "a role play at a restaurant: you order and there is a problem with the food",
+    "healthy eating: easy or difficult with your routine?",
+    "food from other countries you love or hate",
+    "a special family meal you remember",
+    "planning a dinner for friends: the menu, the shopping, the cooking"]],
+  ["Salud y deporte", [
+    "your exercise routine and how you keep motivated",
+    "running, gym or team sports: which is better for you?",
+    "how you relax after a stressful week",
+    "sleep: how many hours you need and how you get them",
+    "a sporting event you watched or took part in",
+    "healthy habits you want to start this year",
+    "should sport be more important at school?",
+    "stress at work or university and how to manage it"]],
+  ["Medio ambiente", [
+    "small things you do at home to help the environment",
+    "plastic: how to use less of it in daily life",
+    "cars, bikes or public transport in your town",
+    "climate change and the weather where you live",
+    "should flights be more expensive to protect the planet?",
+    "recycling: do people in Spain do it well?",
+    "a beautiful natural place near you that should be protected",
+    "fast fashion versus buying second-hand clothes"]],
+  ["Planes de futuro", [
+    "where you see yourself in five years",
+    "living abroad one day: where and why",
+    "your plans after passing the B2 exam",
+    "buying versus renting a home",
+    "a skill you want to learn in the next year",
+    "your plans for next summer",
+    "how life will be different in 2050",
+    "a goal you and your partner have together"]]
 ];
+const STYLES = [
+  "as a relaxed chat between friends",
+  "as a Cambridge B2 First style discussion with follow-up questions",
+  "as a friendly debate: you take the opposite opinion so the learner has to defend their ideas",
+  "starting from a short personal story you invent, then asking about the learner's experience",
+  "with quick-fire questions first, then one longer question that needs a 1-minute answer",
+  "as a role play where you both stay in character until the learner says 'feedback'"
+];
+const CHALLENGES = [
+  "Try to make the learner use the past simple and 'used to'.",
+  "Try to make the learner give reasons with 'because', 'so' and 'although'.",
+  "Try to make the learner compare things (comparatives and superlatives).",
+  "Try to make the learner talk about the future (will, going to, present continuous).",
+  "Try to make the learner give opinions with 'I think', 'In my opinion', 'I'm not sure that'.",
+  "Try to make the learner use the present perfect (ever, never, already, yet).",
+  "Try to make the learner use conditionals ('If I had more time, I would...').",
+  "Try to make the learner use useful linkers: 'first of all', 'on the other hand', 'in the end'."
+];
+function pickTopic(i) {
+  const [title, list] = TOPICS[i];
+  // sin repetir la última situación de este tema
+  const last = ls.get("ij-topic-" + i);
+  let k = Math.floor(Math.random() * list.length);
+  if (list.length > 1 && String(k) === last) k = (k + 1 + Math.floor(Math.random() * (list.length - 1))) % list.length;
+  ls.set("ij-topic-" + i, String(k));
+  const style = STYLES[Math.floor(Math.random() * STYLES.length)];
+  const challenge = CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
+  return { title, idx: i, desc: list[k] + ", " + style, angle: list[k], challenge };
+}
 let C = null;
 // Chat fijo de Claude de Dani: el speaking va con su suscripción, sin clave de API
 const CHAT_URL = "https://claude.ai/chat/3c43db7f-a465-4c52-8d15-6aac8bd7d3a8";
@@ -505,7 +619,7 @@ function topicPrompt(t) {
   return t.photo ? `two photos for a speaking exam. Photo A: ${t.photo.a} Photo B: ${t.photo.b2} Start by asking the learner to compare them (as in Cambridge B2 First Speaking Part 2), then chat about the topic` : `this topic: ${t.desc}`;
 }
 const systemPrompt = t => `You are Alex, a friendly native English speaker chatting with a Spanish learner (around B1, preparing Cambridge B2 First Speaking). Talk about ${topicPrompt(t)}.
-Rules: reply in natural spoken English, 1 to 3 short sentences, then ask one follow-up question to keep the conversation going. Use vocabulary a B1-B2 learner can follow. Do not correct mistakes during the chat; if something is unclear, ask what they meant. The learner's words come from speech recognition, so ignore missing punctuation. Never use lists, emojis or markdown.`;
+Rules: reply in natural spoken English, 1 to 3 short sentences, then ask one follow-up question to keep the conversation going. Use vocabulary a B1-B2 learner can follow. Do not correct mistakes during the chat; if something is unclear, ask what they meant. The learner's words come from speech recognition, so ignore missing punctuation. Never use lists, emojis or markdown.${t.challenge ? " " + t.challenge + " Do it naturally: never say it is a grammar exercise." : ""}`;
 async function claudeCall(system, messages, maxTokens = 1024, plain = false) {
   const key = ls.get(KEY);
   const headers = { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
@@ -529,6 +643,7 @@ function renderChat() {
   $("#main").innerHTML = `<div class="wrap">
     <div class="row" style="justify-content:space-between"><button class="back" data-a="chatback">‹ Temas</button><span class="eyebrow">${esc(t.title)}</span></div>
     ${t.photo ? photosHTML(t.photo) : ""}
+    ${t.angle ? `<div class="row" style="justify-content:space-between;align-items:center;gap:10px"><span class="note">Hoy: <b>${esc(t.angle)}</b></span><button class="btn ghost small" data-a="reroll">Otra situación</button></div>` : ""}
     ${key ? `<div class="chat" id="chat">${C.msgs.map(m => `<div class="bub ${m.role === "assistant" ? "ai" : "me"}">${esc(m.content)}${m.role === "assistant" ? ` <button class="btn ghost small" data-say="${esc(m.content)}">Oír</button>` : ""}</div>`).join("")}${C.busy ? `<div class="bub ai typing">Alex está pensando…</div>` : ""}</div>
       ${stage()}
       <label class="toggle"><input type="checkbox" id="hf" ${C.handsfree ? "checked" : ""}> Manos libres: al terminar Alex, el micro se abre solo</label>
